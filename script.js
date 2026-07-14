@@ -161,13 +161,18 @@ placeholder="Новая задача">
 
 </body>
 </html>
-// NOTES SYSTEM
+// =================
+// NOTES SYSTEM V2
+// =================
 
 
 const noteTitle = document.getElementById("noteTitle");
 const noteText = document.getElementById("noteText");
+const noteTags = document.getElementById("noteTags");
+
 const saveNote = document.getElementById("saveNote");
 const notesList = document.getElementById("notesList");
+const searchNotes = document.getElementById("searchNotes");
 
 
 let notes = JSON.parse(
@@ -176,22 +181,16 @@ localStorage.getItem("notes")
 
 
 
-// сохранить заметку
-
-saveNote.addEventListener("click",()=>{
+saveNote.onclick = ()=>{
 
 
-if(noteTitle.value.trim()===""){
-alert("Введите название");
-return;
-}
-
-
-const note = {
+let note = {
 
 title: noteTitle.value,
 
 text: noteText.value,
+
+tags: noteTags.value,
 
 date: new Date().toLocaleDateString()
 
@@ -209,9 +208,126 @@ JSON.stringify(notes)
 
 noteTitle.value="";
 noteText.value="";
+noteTags.value="";
 
 
-renderNotes();
+showNotes(notes);
+
+};
+
+
+
+
+function showNotes(data){
+
+notesList.innerHTML="";
+
+
+data.forEach((note,index)=>{
+
+
+let li=document.createElement("li");
+
+
+li.innerHTML=`
+
+<h3>${note.title}</h3>
+
+<p>${note.text}</p>
+
+<small>${note.tags}</small>
+
+<br>
+
+<button onclick="openNote(${index})">
+Открыть
+</button>
+
+<button onclick="removeNote(${index})">
+❌
+</button>
+
+`;
+
+
+notesList.appendChild(li);
+
+
+});
+
+}
+
+
+
+function openNote(index){
+
+let note=notes[index];
+
+noteTitle.value=note.title;
+
+noteText.value=note.text;
+
+noteTags.value=note.tags;
+
+}
+
+
+
+
+function removeNote(index){
+
+notes.splice(index,1);
+
+
+localStorage.setItem(
+"notes",
+JSON.stringify(notes)
+);
+
+
+showNotes(notes);
+
+}
+
+
+
+searchNotes.oninput=()=>{
+
+
+let value=
+searchNotes.value.toLowerCase();
+
+
+
+let filtered=notes.filter(note=>{
+
+
+return (
+
+note.title.toLowerCase().includes(value)
+
+||
+
+note.text.toLowerCase().includes(value)
+
+||
+
+note.tags.toLowerCase().includes(value)
+
+);
+
+
+});
+
+
+showNotes(filtered);
+
+
+};
+
+
+
+showNotes(notes);
 
 
 });
