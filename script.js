@@ -1,128 +1,295 @@
-let notes = JSON.parse(localStorage.getItem('second-brain-notes')) || [];
-let activeNoteId = null;
-let isPreview = false;
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-// Элементы DOM
-const notesList = document.getElementById('notes-list');
-const newNoteBtn = document.getElementById('new-note-btn');
-const searchBar = document.getElementById('search-bar');
-const noteTitle = document.getElementById('note-title');
-const noteTags = document.getElementById('note-tags');
-const noteContent = document.getElementById('note-content');
-const previewArea = document.getElementById('preview-area');
-const saveBtn = document.getElementById('save-btn');
-const togglePreviewBtn = document.getElementById('toggle-preview-btn');
+<title>Second Brain</title>
 
-// Инициализация
-renderNotesList();
+<link rel="stylesheet" href="style.css">
 
-newNoteBtn.addEventListener('click', () => {
-    const newNote = {
-        id: Date.now().toString(),
-        title: 'Новая заметка',
-        tags: '',
-        content: ''
-    };
-    notes.push(newNote);
-    saveToLocalStorage();
-    renderNotesList();
-    openNote(newNote.id);
-});
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-saveBtn.addEventListener('click', () => {
-    if (!activeNoteId) return;
-    const note = notes.find(n => n.id === activeNoteId);
-    if (note) {
-        note.title = noteTitle.value;
-        note.tags = noteTags.value;
-        note.content = noteContent.value;
-        saveToLocalStorage();
-        renderNotesList();
-        alert('Сохранено!');
-    }
-});
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-togglePreviewBtn.addEventListener('click', () => {
-    isPreview = !isPreview;
-    if (isPreview) {
-        noteContent.classList.add('hidden');
-        previewArea.classList.remove('hidden');
-        togglePreviewBtn.textContent = 'Редактор';
-        renderPreview();
-    } else {
-        noteContent.classList.remove('hidden');
-        previewArea.classList.add('hidden');
-        togglePreviewBtn.textContent = 'Предпросмотр';
-    }
-});
+</head>
 
-searchBar.addEventListener('input', renderNotesList);
+<body>
 
-function saveToLocalStorage() {
-    localStorage.setItem('second-brain-notes', JSON.stringify(notes));
+<div class="sidebar">
+
+<div class="logo">
+🧠 Second Brain
+</div>
+
+<div class="menu">
+
+<button class="menu-item active" data-page="dashboard">
+🏠 Dashboard
+</button>
+
+<button class="menu-item" data-page="notes">
+📝 Notes
+</button>
+
+<button class="menu-item" data-page="tasks">
+✅ Tasks
+</button>
+
+<button class="menu-item" data-page="habits">
+🔥 Habits
+</button>
+
+<button class="menu-item" data-page="goals">
+🎯 Goals
+</button>
+
+<button class="menu-item" data-page="finance">
+💰 Finance
+</button>
+
+<button class="menu-item" data-page="workout">
+🏋️ Workout
+</button>
+
+<button class="menu-item" data-page="calendar">
+📅 Calendar
+</button>
+
+<button class="menu-item" data-page="journal">
+📖 Journal
+</button>
+
+</div>
+
+</div>
+
+<div class="content">
+
+<section id="dashboard" class="page active">
+
+<h1>Добро пожаловать 👋</h1>
+
+<div class="cards">
+
+<div class="card">
+<h2>Задачи</h2>
+<p id="taskCount">0</p>
+</div>
+
+<div class="card">
+<h2>Привычки</h2>
+<p>0%</p>
+</div>
+
+<div class="card">
+<h2>Доход</h2>
+<p>0 ₴</p>
+</div>
+
+<div class="card">
+<h2>Вес</h2>
+<p>61 кг</p>
+</div>
+
+</div>
+
+</section>
+
+<section id="notes" class="page">
+<h1>📝 Notes</h1>
+
+<textarea placeholder="Начни писать..."></textarea>
+
+</section>
+
+<section id="tasks" class="page">
+
+<h1>✅ Tasks</h1>
+
+<div class="task-input">
+
+<input
+id="taskInput"
+type="text"
+placeholder="Новая задача">
+
+<button id="addTask">
+Добавить
+</button>
+
+</div>
+
+<ul id="taskList"></ul>
+
+</section>
+
+<section id="habits" class="page">
+<h1>🔥 Habits</h1>
+<p>Скоро...</p>
+</section>
+
+<section id="goals" class="page">
+<h1>🎯 Goals</h1>
+<p>Скоро...</p>
+</section>
+
+<section id="finance" class="page">
+<h1>💰 Finance</h1>
+<p>Скоро...</p>
+</section>
+
+<section id="workout" class="page">
+<h1>🏋️ Workout</h1>
+<p>Скоро...</p>
+</section>
+
+<section id="calendar" class="page">
+<h1>📅 Calendar</h1>
+<p>Скоро...</p>
+</section>
+
+<section id="journal" class="page">
+<h1>📖 Journal</h1>
+<p>Скоро...</p>
+</section>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
+// NOTES SYSTEM
+
+
+const noteTitle = document.getElementById("noteTitle");
+const noteText = document.getElementById("noteText");
+const saveNote = document.getElementById("saveNote");
+const notesList = document.getElementById("notesList");
+
+
+let notes = JSON.parse(
+localStorage.getItem("notes")
+) || [];
+
+
+
+// сохранить заметку
+
+saveNote.addEventListener("click",()=>{
+
+
+if(noteTitle.value.trim()===""){
+alert("Введите название");
+return;
 }
 
-function renderNotesList() {
-    notesList.innerHTML = '';
-    const query = searchBar.value.toLowerCase();
 
-    const filtered = notes.filter(note => 
-        note.title.toLowerCase().includes(query) || 
-        note.tags.toLowerCase().includes(query) ||
-        note.content.toLowerCase().includes(query)
-    );
+const note = {
 
-    filtered.forEach(note => {
-        const li = document.createElement('li');
-        li.textContent = note.title;
-        li.addEventListener('click', () => openNote(note.id));
-        notesList.appendChild(li);
-    });
-}
+title: noteTitle.value,
 
-function openNote(id) {
-    activeNoteId = id;
-    const note = notes.find(n => n.id === id);
-    
-    noteTitle.disabled = false;
-    noteTags.disabled = false;
-    noteContent.disabled = false;
-    saveBtn.disabled = false;
-    togglePreviewBtn.disabled = false;
+text: noteText.value,
 
-    noteTitle.value = note.title;
-    noteTags.value = note.tags;
-    noteContent.value = note.content;
+date: new Date().toLocaleDateString()
 
-    // Сброс превью при переключении заметки
-    isPreview = false;
-    noteContent.classList.remove('hidden');
-    previewArea.classList.add('hidden');
-    togglePreviewBtn.textContent = 'Предпросмотр';
-}
-
-// Парсинг Вики-ссылок [[Название заметки]] в превью
-function renderPreview() {
-    let rawContent = noteContent.value;
-    
-    // Экранирование HTML тегов для безопасности
-    rawContent = rawContent.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-    // Превращаем [[Заметка]] в кликабельные ссылки
-    const wikiLinkRegex = /\[\[(.*?)\]\]/g;
-    const htmlContent = rawContent.replace(wikiLinkRegex, (match, title) => {
-        const targetNote = notes.find(n => n.title.trim().toLowerCase() === title.trim().toLowerCase());
-        if (targetNote) {
-            return `<a href="#" style="color: #5865f2; text-decoration: underline;" onclick="window.openLinkedNote('${targetNote.id}')">${title}</a>`;
-        } else {
-            return `<span style="color: #f04747; border-bottom: 1px dashed;">${title} (не создана)</span>`;
-        }
-    });
-
-    previewArea.innerHTML = htmlContent.replace(/\n/g, '<br>');
-}
-
-// Глобальная функция для перехода по линкам внутри превью
-window.openLinkedNote = function(id) {
-    openNote(id);
 };
+
+
+notes.push(note);
+
+
+localStorage.setItem(
+"notes",
+JSON.stringify(notes)
+);
+
+
+noteTitle.value="";
+noteText.value="";
+
+
+renderNotes();
+
+
+});
+
+
+
+// показать заметки
+
+function renderNotes(){
+
+
+notesList.innerHTML="";
+
+
+notes.forEach((note,index)=>{
+
+
+let li=document.createElement("li");
+
+
+li.innerHTML=`
+
+<b>${note.title}</b>
+<br>
+${note.date}
+
+<button onclick="openNote(${index})">
+Открыть
+</button>
+
+<button onclick="deleteNote(${index})">
+❌
+</button>
+
+`;
+
+
+notesList.appendChild(li);
+
+
+});
+
+
+}
+
+
+
+// открыть заметку
+
+function openNote(index){
+
+noteTitle.value=notes[index].title;
+
+noteText.value=notes[index].text;
+
+
+}
+
+
+
+// удалить
+
+function deleteNote(index){
+
+
+notes.splice(index,1);
+
+
+localStorage.setItem(
+"notes",
+JSON.stringify(notes)
+);
+
+
+renderNotes();
+
+
+}
+
+
+renderNotes();
